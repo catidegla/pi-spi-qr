@@ -29,9 +29,9 @@ composer require catidegla/pi-spi-qr
 use Catidegla\PiSpiQr\QrCode;
 
 // A printed QR at the counter. The payer types the amount.
-echo QrCode::static('341c3e1b-4312-49ec-b75e-4c8c74c10fd7', 'BJ')
+echo QrCode::static('341c3e1b-4312-49ec-b75e-4c8c74c10fd7', 'SN')
     ->merchantName('Chez Fatou')
-    ->merchantCity('Cotonou')
+    ->merchantCity('Dakar')
     ->toPayload();
 
 // One sale at the till. The transaction id is required, not optional.
@@ -85,6 +85,81 @@ What gets checked: the scheme identifier, the checksum, the alias length, the pa
 
 The encoding is ordinary EMV and several PHP libraries already do it. What they cannot know is the profile: that the scheme identifier must be `int.bceao.pi`, that the currency is always 952, that only a 36 character payment address may appear in a QR while a phone number alias is valid everywhere else on the rail, and that the country must be a union member state. Those rules are what turns a QR that scans into a payment that settles.
 
+## Laravel
+
+Nothing to register. The service provider is discovered, and the package still has no runtime dependency: the bridge only wakes up inside a Laravel application and the core works exactly the same without one.
+
+```bash
+php artisan vendor:publish --tag=pi-spi-config
+```
+
+```php
+// config/pi-spi.php
+'alias'   => env('PI_SPI_ALIAS'),
+'country' => env('PI_SPI_COUNTRY'),
+'merchant' => [
+    'name' => env('PI_SPI_MERCHANT_NAME'),
+    'city' => env('PI_SPI_MERCHANT_CITY'),
+],
+```
+
+Every QR a merchant issues repeats the same four values. Putting them in config once means the call site carries only what actually varies:
+
+```php
+use Catidegla\PiSpiQr\Laravel\Facades\PiSpi;
+
+PiSpi::dynamic(1500, 'TILL-1-000842')->toPayload();
+PiSpi::static()->toPayload();
+```
+
+Both return the same `QrCode` object the core builds, so anything the bridge does not cover is one fluent call away. Pass an alias or a country to either method to override the configured one for a single code.
+
+There is no default country. Any one of the eight would be right for some readers of that file and quietly wrong for the other seven, and a wrong country produces a QR that scans, looks correct, and is refused.
+
+### Validating a scanned payload
+
+A payload arriving from a client is user input from an untrusted camera. It may be truncated, altered after printing, or from another payment scheme entirely.
+
+```php
+use Catidegla\PiSpiQr\Laravel\Rules\PiSpiPayload;
+
+$request->validate([
+    'qr' => ['required', 'string', new PiSpiPayload],
+]);
+```
+
+Every broken rule becomes its own message, because a payload that fails on the scheme identifier usually fails on the currency too and the operator wants both at once. Pass `new PiSpiPayload(requireAmount: true)` for a flow that cannot accept a QR whose amount the payer types.
+
+### Reading one at the terminal
+
+The failure people actually hit is a QR that scans and is then refused, and diagnosing that means reading the payload rather than looking at the picture.
+
+```bash
+php artisan pi-spi:qr 00020126520014int.bceao.pi0136341c3e1b...
+```
+
+```
++----------------+-------------------------+
+| field          | value                   |
++----------------+-------------------------+
+| scheme         | (missing)               |
+| alias          | (missing)               |
+| country        | BR                      |
+| amount         | entered by the payer    |
+| transaction id | ***                     |
+| channel        | (missing)               |
+| merchant       | Fulano de Tal, BRASILIA |
+| checksum       | 1D3D                    |
++----------------+-------------------------+
+
+5 problem(s):
+  - missing the scheme identifier in 36-00, so this is not a PI-SPI QR
+  - currency is "986", and PI-SPI settles only in 952 (XOF)
+  - country "BR" is not one of the eight union member states (BJ, BF, CI, GW, ML, NE, SN, TG)
+```
+
+That is a real Brazilian Pix code, whose own checksum is perfectly sound. Called with no argument the command builds one from your config instead, prints it, and checks it before you print it on anything.
+
 ## Conformance
 
 The test suite includes BCEAO's own published worked example, payload and expected checksum both. If it ever fails, this package is wrong about the specification rather than the other way round.
@@ -123,7 +198,7 @@ A QR covers a customer standing in front of you. It does nothing for one paying 
 composer require catidegla/laravel-mobile-money
 ```
 
-The two are independent and neither requires the other. This one is framework-agnostic and needs no database; that one is Laravel and does.
+The two are independent and neither requires the other. This one has no runtime dependencies and needs no database; that one is Laravel only and does.
 
 ## Contributing
 

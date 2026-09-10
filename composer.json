@@ -23,6 +23,7 @@
         "php": "^8.2"
     },
     "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0",
         "phpunit/phpunit": "^11.0"
     },
     "autoload": {
@@ -42,5 +43,18 @@
         "sort-packages": true
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "suggest": {
+        "illuminate/support": "Enables the Laravel bridge: a config-aware builder, a validation rule for scanned payloads, and an artisan command."
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Catidegla\\PiSpiQr\\Laravel\\PiSpiServiceProvider"
+            ],
+            "aliases": {
+                "PiSpi": "Catidegla\\PiSpiQr\\Laravel\\Facades\\PiSpi"
+            }
+        }
+    }
 }
