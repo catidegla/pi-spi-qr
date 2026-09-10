@@ -113,9 +113,23 @@ This does QR payloads. It does not talk to the PI-SPI API, which needs credentia
 
 Per the specification, a PI-SPI QR is Merchant-Presented-Mode only, carries no personal data, and must not be used for online or remote payments.
 
+## The other half: collecting from a phone
+
+A QR covers a customer standing in front of you. It does nothing for one paying from somewhere else, which on these networks means pushing a prompt to their handset and waiting.
+
+[**catidegla/laravel-mobile-money**](https://github.com/catidegla/laravel-mobile-money) does that part: MTN MoMo, Wave and Orange Money behind one Laravel interface, with the driver chosen from the payer's number rather than named by the caller. It writes a row before it calls a provider, so a process that dies mid-call leaves a record rather than a payment nobody knows about, and it reconciles the callbacks that never arrive, which in this region is a normal share of them.
+
+```bash
+composer require catidegla/laravel-mobile-money
+```
+
+The two are independent and neither requires the other. This one is framework-agnostic and needs no database; that one is Laravel and does.
+
 ## Contributing
 
 The specification is public at [developer.pispi.bceao.int](https://developer.pispi.bceao.int). If you find a rule this package gets wrong, an issue quoting the page beats a patch, because the fix usually belongs in the validation messages rather than the encoder.
+
+One caveat on that portal: its "Forum communautaire" link points at `forum.pispi.bceao.int`, which does not resolve. The sandbox contact `pisfn-sandbox@bceao.int` does work.
 
 ## License
 
