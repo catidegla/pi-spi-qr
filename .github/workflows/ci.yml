@@ -20,9 +20,13 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # The package itself needs no extension beyond the core. These are for
+      # the Laravel bridge's test harness: Flysystem, which Laravel pulls in,
+      # requires fileinfo, and the Windows images do not enable it by default.
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
+          extensions: fileinfo, mbstring, openssl
           coverage: none
 
       - name: Install
