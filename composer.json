@@ -1,0 +1,46 @@
+{
+    "name": "catidegla/pi-spi-qr",
+    "description": "Build, parse and validate PI-SPI interoperable QR payloads for the BCEAO instant payment platform, in PHP. No dependencies.",
+    "keywords": [
+        "pi-spi",
+        "bceao",
+        "uemoa",
+        "qr-code",
+        "emv",
+        "payments",
+        "xof",
+        "instant-payment",
+        "laravel"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Christ-loisele Atidegla"
+        }
+    ],
+    "require": {
+        "php": "^8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Catidegla\\PiSpiQr\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Catidegla\\PiSpiQr\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

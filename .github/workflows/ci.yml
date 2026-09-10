@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        php: ['8.2', '8.3', '8.4']
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Install
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      # The suite includes BCEAO's own published worked example. If that fails,
+      # this package is wrong about the specification, not the other way round.
+      - name: Test
+        run: vendor/bin/phpunit
