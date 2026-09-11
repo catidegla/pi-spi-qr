@@ -89,6 +89,8 @@ The encoding is ordinary EMV and several PHP libraries already do it. What they 
 
 Nothing to register. The service provider is discovered, and the package still has no runtime dependency: the bridge only wakes up inside a Laravel application and the core works exactly the same without one.
 
+Tested against **Laravel 12 and 13**. There is no `illuminate/*` constraint to satisfy, so the version you are on is your business rather than this package's, but those two are the ones CI proves on every commit.
+
 ```bash
 php artisan vendor:publish --tag=pi-spi-config
 ```
